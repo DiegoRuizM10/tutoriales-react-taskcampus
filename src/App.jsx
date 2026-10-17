@@ -2,8 +2,8 @@
 import { useState } from 'react'
 import { useTareas } from './hooks/useTareas'
 import Header from './components/Header'
-import TaskSummary from './components/TaskSummary'
 import TaskList from './components/TaskList'
+import TaskSummary from './components/TaskSummary'
 import './App.css'
 
 function App() {
@@ -14,54 +14,42 @@ function App() {
     agregarTarea,
     cambiarEstado,
     eliminarTarea,
-    editarTarea,
+    editarTarea
   } = useTareas()
 
+  const [usuario, setUsuario] = useState('Estudiante')
   const [nuevoTitulo, setNuevoTitulo] = useState('')
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
 
-  function manejarAgregar(e) {
-    e.preventDefault()
+  function manejarAgregarTarea(evento) {
+    evento.preventDefault()
 
-    if (!nuevoTitulo.trim()) return
+    if (!nuevoTitulo.trim()) {
+      return
+    }
 
-    agregarTarea(nuevoTitulo)
+    agregarTarea(nuevoTitulo.trim())
     setNuevoTitulo('')
   }
 
-  const tareasVisibles = tareas.filter((tarea) => {
-    const coincideBusqueda = tarea.titulo
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
+  function manejarEditarTarea(id, tituloActual) {
+    const nuevoTituloTarea = window.prompt(
+      'Escribe el nuevo título:',
+      tituloActual
+    )
 
-    const coincideFiltro =
-      filtro === 'todas' ||
-      (filtro === 'pendientes' && !tarea.completada) ||
-      (filtro === 'completadas' && tarea.completada)
-
-    return coincideBusqueda && coincideFiltro
-  })
-
-  const pendientes = tareas.filter(
-    (tarea) => !tarea.completada
-  ).length
-
-  const completadas = tareas.filter(
-    (tarea) => tarea.completada
-  ).length
-
-  function manejarEditar(tarea) {
-    const titulo = prompt('Escribe el nuevo título de la tarea:')
-
-    if (titulo?.trim()) {
-      editarTarea(tarea.id, titulo)
+    if (
+      nuevoTituloTarea !== null &&
+      nuevoTituloTarea.trim() !== ''
+    ) {
+      editarTarea(id, nuevoTituloTarea.trim())
     }
   }
 
-  function manejarEliminar(id) {
+  function manejarEliminarTarea(id) {
     const confirmar = window.confirm(
-      '¿Seguro que quieres eliminar esta tarea?'
+      '¿Estás seguro de que quieres eliminar esta tarea?'
     )
 
     if (confirmar) {
@@ -69,12 +57,47 @@ function App() {
     }
   }
 
+  const tareasSeguras = Array.isArray(tareas) ? tareas : []
+
+  const tareasFiltradas = tareasSeguras.filter((tarea) => {
+    const titulo = String(
+      tarea.title ?? tarea.titulo ?? ''
+    )
+
+    const completada =
+      tarea.completed ?? tarea.completada ?? false
+
+    const coincideBusqueda = titulo
+      .toLowerCase()
+      .includes(busqueda.toLowerCase())
+
+    const coincideFiltro =
+      filtro === 'todas' ||
+      (filtro === 'pendientes' && !completada) ||
+      (filtro === 'completadas' && completada)
+
+    return coincideBusqueda && coincideFiltro
+  })
+
+  const pendientes = tareasSeguras.filter(
+    (tarea) => !(tarea.completed ?? tarea.completada ?? false)
+  ).length
+
+  const completadas = tareasSeguras.filter(
+    (tarea) => tarea.completed ?? tarea.completada ?? false
+  ).length
+
   return (
     <main className="app">
-      <Header />
+      <Header
+        usuario={usuario}
+        onCambiarUsuario={() =>
+          setUsuario('Estudiante Anónimo')
+        }
+      />
 
       <TaskSummary
-        total={tareas.length}
+        total={tareasSeguras.length}
         pendientes={pendientes}
         completadas={completadas}
       />
@@ -82,67 +105,83 @@ function App() {
       <section className="panel">
         <h2>Nueva tarea</h2>
 
-        <form className="formulario" onSubmit={manejarAgregar}>
+        <form
+          className="formulario"
+          onSubmit={manejarAgregarTarea}
+        >
           <input
             type="text"
-            placeholder="Ej. Estudiar para el examen..."
+            placeholder="Escribe una tarea académica..."
             value={nuevoTitulo}
-            onChange={(e) => setNuevoTitulo(e.target.value)}
+            onChange={(evento) =>
+              setNuevoTitulo(evento.target.value)
+            }
           />
 
-          <button type="submit">Agregar tarea</button>
+          <button type="submit">
+            Agregar tarea
+          </button>
         </form>
+      </section>
 
-        <h2 className="titulo-lista">Mis tareas</h2>
+      <section className="panel">
+        <h2>Mis tareas</h2>
 
         <input
-          className="busqueda"
-          type="search"
-          placeholder="Buscar por título..."
+          type="text"
+          placeholder="Buscar tarea..."
           value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          onChange={(evento) =>
+            setBusqueda(evento.target.value)
+          }
         />
 
         <div className="filtros">
-          {['todas', 'pendientes', 'completadas'].map((opcion) => (
-            <button
-              key={opcion}
-              type="button"
-              className={filtro === opcion ? 'activo' : ''}
-              onClick={() => setFiltro(opcion)}
-            >
-              {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => setFiltro('todas')}
+          >
+            Todas
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFiltro('pendientes')}
+          >
+            Pendientes
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFiltro('completadas')}
+          >
+            Completadas
+          </button>
         </div>
 
-        {cargando && (
-          <p className="vacio">Cargando tareas...</p>
-        )}
+        {cargando && <p>Cargando tareas...</p>}
 
         {error && (
-          <p className="vacio">Error: {error}</p>
+          <p>Error al cargar las tareas: {String(error)}</p>
         )}
 
         {!cargando && !error && (
-          <>
-            <p className="cantidad">
-              Mostrando {tareasVisibles.length} de {tareas.length} tareas
-            </p>
-
-            <TaskList
-              tareas={tareasVisibles}
-              onCambiarEstado={cambiarEstado}
-              onEditar={manejarEditar}
-              onEliminar={manejarEliminar}
-            />
-          </>
+          <TaskList
+            tareas={tareasFiltradas}
+            onCambiarEstado={cambiarEstado}
+            onEditar={manejarEditarTarea}
+            onEliminar={manejarEliminarTarea}
+          />
         )}
-      </section>
 
-      <footer>
-        <p>TaskCampus · Tu espacio de organización académica</p>
-      </footer>
+        {!cargando &&
+          !error &&
+          tareasFiltradas.length > 0 && (
+            <p>
+              Tareas visibles: {tareasFiltradas.length}
+            </p>
+          )}
+      </section>
     </main>
   )
 }
