@@ -1,6 +1,9 @@
+
 import { useState } from 'react'
 import { useTareas } from './hooks/useTareas'
 import Header from './components/Header'
+import Card from './components/Card'
+import Modal from './components/Modal'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import TaskSummary from './components/TaskSummary'
@@ -20,38 +23,38 @@ function App() {
   const [usuario, setUsuario] = useState('Estudiante')
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
+  const [tareaPorEliminar, setTareaPorEliminar] = useState(null)
 
   function manejarEditarTarea(id, tituloActual) {
-    const nuevoTituloTarea = window.prompt(
+    const nuevoTitulo = window.prompt(
       'Escribe el nuevo título:',
       tituloActual
     )
 
-    if (
-      nuevoTituloTarea !== null &&
-      nuevoTituloTarea.trim() !== ''
-    ) {
-      editarTarea(id, nuevoTituloTarea.trim())
+    if (nuevoTitulo !== null && nuevoTitulo.trim() !== '') {
+      editarTarea(id, nuevoTitulo.trim())
     }
   }
 
   function manejarEliminarTarea(id) {
-    const confirmar = window.confirm(
-      '¿Estás seguro de que quieres eliminar esta tarea?'
-    )
+    const tarea = tareasSeguras.find((item) => item.id === id)
 
-    if (confirmar) {
-      eliminarTarea(id)
+    if (tarea) {
+      setTareaPorEliminar(tarea)
+    }
+  }
+
+  function confirmarEliminarTarea() {
+    if (tareaPorEliminar) {
+      eliminarTarea(tareaPorEliminar.id)
+      setTareaPorEliminar(null)
     }
   }
 
   const tareasSeguras = Array.isArray(tareas) ? tareas : []
 
   const tareasFiltradas = tareasSeguras.filter((tarea) => {
-    const titulo = String(
-      tarea.title ?? tarea.titulo ?? ''
-    )
-
+    const titulo = String(tarea.title ?? tarea.titulo ?? '')
     const completada =
       tarea.completed ?? tarea.completada ?? false
 
@@ -92,16 +95,12 @@ function App() {
 
       <TaskForm onAgregarTarea={agregarTarea} />
 
-      <section className="panel">
-        <h2>Mis tareas</h2>
-
+      <Card titulo="Mis tareas">
         <input
           type="text"
           placeholder="Buscar tarea..."
           value={busqueda}
-          onChange={(evento) =>
-            setBusqueda(evento.target.value)
-          }
+          onChange={(evento) => setBusqueda(evento.target.value)}
         />
 
         <div className="filtros">
@@ -154,11 +153,18 @@ function App() {
         {!cargando &&
           !error &&
           tareasFiltradas.length > 0 && (
-            <p>
-              Tareas visibles: {tareasFiltradas.length}
-            </p>
+            <p>Tareas visibles: {tareasFiltradas.length}</p>
           )}
-      </section>
+      </Card>
+
+      {tareaPorEliminar && (
+        <Modal
+          titulo="Confirmar eliminación"
+          mensaje={`¿Estás seguro de que quieres eliminar "${tareaPorEliminar.title ?? tareaPorEliminar.titulo}"? Esta acción no se puede deshacer.`}
+          onConfirmar={confirmarEliminarTarea}
+          onCancelar={() => setTareaPorEliminar(null)}
+        />
+      )}
     </main>
   )
 }
