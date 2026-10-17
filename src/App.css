@@ -318,3 +318,30 @@ input:not(.tarea-checkbox):focus {
     flex: 1;
   }
 }
+
+.filtros-tareas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filtros-tareas button {
+  padding: 9px 16px;
+  border: 1px solid #d5deeb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.filtros-tareas button:hover {
+  background: #eff6ff;
+}
+
+.filtros-tareas button.filtro-activo {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
