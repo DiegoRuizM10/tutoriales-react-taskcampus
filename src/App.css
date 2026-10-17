@@ -1,10 +1,8 @@
 
-:root {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #e8eaf2;
-  background: #10121a;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+/* Estilos generales */
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
 * {
@@ -13,9 +11,9 @@
 
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: #10121a;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  color: #0f172a;
 }
 
 button,
@@ -27,69 +25,83 @@ button {
   cursor: pointer;
 }
 
+/* Contenedor principal */
 .app {
-  width: min(900px, 92%);
+  width: min(100% - 32px, 1000px);
   margin: 0 auto;
-  padding: 48px 0;
+  padding: 40px 0;
 }
 
+/* Encabezado */
 .encabezado {
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #dbeafe;
 }
 
 .etiqueta {
-  color: #9d8cff;
+  margin: 0 0 8px;
+  color: #2563eb;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 700;
   letter-spacing: 2px;
 }
 
-h1 {
-  margin: 10px 0;
+.encabezado h1 {
+  margin: 0;
+  color: #1d4ed8;
   font-size: clamp(36px, 6vw, 52px);
 }
 
 .subtitulo {
-  color: #a7adbf;
+  margin: 8px 0 0;
+  color: #64748b;
 }
 
+/* Resumen de tareas */
 .resumen {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.tarjeta,
-.panel {
-  border: 1px solid #2d3040;
-  border-radius: 16px;
-  background: #191c28;
-}
-
 .tarjeta {
-  padding: 22px;
+  padding: 24px 16px;
+  text-align: center;
+  background-color: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
 }
 
 .tarjeta span {
   display: block;
-  color: #a7adbf;
+  color: #475569;
   font-size: 14px;
 }
 
 .tarjeta strong {
   display: block;
-  margin-top: 12px;
-  font-size: 32px;
+  margin-top: 10px;
+  color: #1d4ed8;
+  font-size: 30px;
 }
 
+/* Panel principal */
 .panel {
-  padding: 26px;
+  padding: 28px;
+  background-color: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgb(15 23 42 / 6%);
 }
 
-h2 {
-  margin-top: 0;
+.panel h2 {
+  margin: 0 0 14px;
+  color: #1d4ed8;
   font-size: 20px;
+  text-align: center;
 }
 
 .formulario {
@@ -102,59 +114,78 @@ h2 {
   width: 100%;
   min-width: 0;
   padding: 13px 15px;
-  color: #e8eaf2;
-  border: 1px solid #373b4d;
+  color: #0f172a;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 9px;
   outline: none;
-  background: #11141e;
 }
 
 .formulario input:focus,
 .busqueda:focus {
-  border-color: #9d8cff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
 }
 
 .formulario button {
+  flex-shrink: 0;
   padding: 12px 18px;
-  color: #10121a;
-  border: 0;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
   border-radius: 9px;
-  background: #a99aff;
-  font-weight: bold;
-  white-space: nowrap;
+}
+
+.formulario button:hover {
+  background-color: #1d4ed8;
 }
 
 .titulo-lista {
-  margin-top: 34px;
+  margin-top: 32px !important;
 }
 
+.busqueda {
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* Filtros */
 .filtros {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
 }
 
 .filtros button {
-  padding: 9px 14px;
-  color: #c0c4d3;
-  border: 1px solid #373b4d;
+  padding: 10px 14px;
+  color: #1e40af;
+  background-color: #ffffff;
+  border: 1px solid #bfdbfe;
   border-radius: 8px;
-  background: transparent;
 }
 
+.filtros button:hover,
 .filtros button.activo {
-  color: #c8bdff;
-  border-color: #8570e8;
-  background: #30284d;
+  color: #ffffff;
+  background-color: #2563eb;
+  border-color: #2563eb;
 }
 
+/* Cantidad visible y mensajes */
 .cantidad {
-  margin: 22px 0 12px;
-  color: #9da4b8;
+  margin: 24px 0;
+  color: #64748b;
   font-size: 13px;
+  text-align: center;
 }
 
+.vacio {
+  padding: 20px 0;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Listado */
 .lista-tareas {
   margin: 0;
   padding: 0;
@@ -165,88 +196,100 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px 0;
-  border-bottom: 1px solid #2d3040;
+  gap: 16px;
+  padding: 16px 4px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tarea label {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.tarea input[type='checkbox'] {
-  accent-color: #a99aff;
+.tarea label input {
+  flex-shrink: 0;
+  accent-color: #2563eb;
 }
 
 .texto-completado {
-  color: #858b9e;
+  color: #94a3b8;
   text-decoration: line-through;
 }
 
 .acciones {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
 }
 
 .acciones button {
-  padding: 7px 10px;
-  border: 1px solid #373b4d;
-  border-radius: 7px;
-  background: #222635;
-  color: #e8eaf2;
+  padding: 9px 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
 }
 
-.acciones .boton-eliminar {
-  color: #ff9caa;
+.boton-editar {
+  color: #1d4ed8;
 }
 
-.vacio {
-  padding: 20px 0;
-  color: #a7adbf;
-  text-align: center;
+.boton-editar:hover {
+  background-color: #eff6ff;
 }
 
+.boton-eliminar {
+  color: #dc2626;
+}
+
+.boton-eliminar:hover {
+  background-color: #fef2f2;
+}
+
+/* Pie de página */
 footer {
-  padding-top: 24px;
-  color: #777f94;
+  padding: 24px 0;
+  color: #64748b;
   font-size: 13px;
   text-align: center;
 }
 
-@media (max-width: 600px) {
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 650px) {
   .app {
-    padding: 28px 0;
+    width: min(100% - 20px, 1000px);
+    padding: 24px 0;
   }
 
   .resumen {
-    gap: 8px;
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .tarjeta {
-    padding: 14px 10px;
-  }
-
-  .tarjeta span {
-    font-size: 12px;
-  }
-
-  .tarjeta strong {
-    font-size: 25px;
+    padding: 18px;
   }
 
   .panel {
-    padding: 18px;
+    padding: 18px 14px;
   }
 
   .formulario {
     flex-direction: column;
   }
 
+  .formulario button {
+    width: 100%;
+  }
+
   .tarea {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .acciones {
+    align-self: flex-end;
   }
 }
