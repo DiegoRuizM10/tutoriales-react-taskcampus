@@ -1,7 +1,7 @@
-
 import { useState } from 'react'
 import { useTareas } from './hooks/useTareas'
 import Header from './components/Header'
+import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import TaskSummary from './components/TaskSummary'
 import './App.css'
@@ -18,20 +18,8 @@ function App() {
   } = useTareas()
 
   const [usuario, setUsuario] = useState('Estudiante')
-  const [nuevoTitulo, setNuevoTitulo] = useState('')
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
-
-  function manejarAgregarTarea(evento) {
-    evento.preventDefault()
-
-    if (!nuevoTitulo.trim()) {
-      return
-    }
-
-    agregarTarea(nuevoTitulo.trim())
-    setNuevoTitulo('')
-  }
 
   function manejarEditarTarea(id, tituloActual) {
     const nuevoTituloTarea = window.prompt(
@@ -102,27 +90,7 @@ function App() {
         completadas={completadas}
       />
 
-      <section className="panel">
-        <h2>Nueva tarea</h2>
-
-        <form
-          className="formulario"
-          onSubmit={manejarAgregarTarea}
-        >
-          <input
-            type="text"
-            placeholder="Escribe una tarea académica..."
-            value={nuevoTitulo}
-            onChange={(evento) =>
-              setNuevoTitulo(evento.target.value)
-            }
-          />
-
-          <button type="submit">
-            Agregar tarea
-          </button>
-        </form>
-      </section>
+      <TaskForm onAgregarTarea={agregarTarea} />
 
       <section className="panel">
         <h2>Mis tareas</h2>
@@ -139,6 +107,7 @@ function App() {
         <div className="filtros">
           <button
             type="button"
+            className={filtro === 'todas' ? 'filtro-activo' : ''}
             onClick={() => setFiltro('todas')}
           >
             Todas
@@ -146,6 +115,9 @@ function App() {
 
           <button
             type="button"
+            className={
+              filtro === 'pendientes' ? 'filtro-activo' : ''
+            }
             onClick={() => setFiltro('pendientes')}
           >
             Pendientes
@@ -153,6 +125,9 @@ function App() {
 
           <button
             type="button"
+            className={
+              filtro === 'completadas' ? 'filtro-activo' : ''
+            }
             onClick={() => setFiltro('completadas')}
           >
             Completadas
@@ -162,7 +137,9 @@ function App() {
         {cargando && <p>Cargando tareas...</p>}
 
         {error && (
-          <p>Error al cargar las tareas: {String(error)}</p>
+          <p className="mensaje-error">
+            Error al cargar las tareas: {String(error)}
+          </p>
         )}
 
         {!cargando && !error && (

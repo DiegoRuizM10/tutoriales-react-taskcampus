@@ -1,22 +1,44 @@
-
 import { useState, useEffect } from 'react'
 import { obtenerTareas } from '../services/tareasService'
+
+const CLAVE_TAREAS = 'taskcampus-tareas'
 
 export function useTareas() {
   const [tareas, setTareas] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
 
+  // Cargar tareas al iniciar la aplicación
   useEffect(() => {
     async function cargarTareas() {
       try {
         setCargando(true)
         setError('')
 
+        const guardadas = localStorage.getItem(CLAVE_TAREAS)
+
+        if (guardadas !== null) {
+          const tareasGuardadas = JSON.parse(guardadas)
+
+          if (Array.isArray(tareasGuardadas)) {
+            setTareas(tareasGuardadas)
+            return
+          }
+        }
+
         const datos = await obtenerTareas()
-        setTareas(datos)
+
+        const tareasIniciales = datos.map((tarea) => ({
+          ...tarea,
+          titulo: tarea.titulo ?? tarea.title ?? '',
+          completada: tarea.completada ?? tarea.completed ?? false
+        }))
+
+        setTareas(tareasIniciales)
       } catch (err) {
-        setError(err.message || 'Ocurrió un error al cargar las tareas')
+        setError(
+          err.message || 'Ocurrió un error al cargar las tareas'
+        )
       } finally {
         setCargando(false)
       }
@@ -25,11 +47,21 @@ export function useTareas() {
     cargarTareas()
   }, [])
 
+  // Guardar automáticamente cuando cambian las tareas
+  useEffect(() => {
+    if (!cargando && !error) {
+      localStorage.setItem(
+        CLAVE_TAREAS,
+        JSON.stringify(tareas)
+      )
+    }
+  }, [tareas, cargando, error])
+
   function agregarTarea(titulo) {
     const nuevaTarea = {
       id: Date.now(),
       titulo: titulo.trim(),
-      completada: false,
+      completada: false
     }
 
     setTareas((actuales) => [...actuales, nuevaTarea])
@@ -70,6 +102,6 @@ export function useTareas() {
     agregarTarea,
     cambiarEstado,
     eliminarTarea,
-    editarTarea,
+    editarTarea
   }
 }
