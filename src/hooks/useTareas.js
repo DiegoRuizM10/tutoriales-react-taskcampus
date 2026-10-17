@@ -1,36 +1,31 @@
 
 import { useState, useEffect } from 'react'
-
-const API_URL = 'https://jsonplaceholder.typicode.com/todos'
+import {
+  obtenerTareas,
+  crearTarea as crearTareaAPI,
+  actualizarTarea as actualizarTareaAPI,
+  eliminarTareaAPI
+} from '../services/tareasService'
 
 export function useTareas() {
   const [tareas, setTareas] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
-  const [operacionEnCurso, setOperacionEnCurso] = useState(false)
 
   useEffect(() => {
     const controlador = new AbortController()
 
-    async function cargarTareas() {
+    async function cargar() {
       try {
         setCargando(true)
         setError(null)
 
-        const respuesta = await fetch(
-          `${API_URL}?_limit=10`,
-          { signal: controlador.signal }
-        )
-
-        if (!respuesta.ok) {
-          throw new Error('No se pudieron cargar las tareas.')
-        }
-
-        const datos = await respuesta.json()
+        const datos = await obtenerTareas()
         setTareas(datos)
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(err.message || 'Error al cargar las tareas.')
+        if (!controlador.signal.aborted) {
+          setError(err.message || 'No se pudieron cargar las tareas.')
         }
       } finally {
         if (!controlador.signal.aborted) {
@@ -39,7 +34,7 @@ export function useTareas() {
       }
     }
 
-    cargarTareas()
+    cargar()
 
     return () => controlador.abort()
   }, [])
@@ -48,31 +43,15 @@ export function useTareas() {
     const tituloLimpio = String(titulo ?? '').trim()
 
     if (!tituloLimpio) {
-      setError('El título de la tarea no puede estar vacío.')
+      setError('El título no puede estar vacío.')
       return false
     }
 
     try {
-      setOperacionEnCurso(true)
+      setGuardando(true)
       setError(null)
 
-      const respuesta = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: tituloLimpio,
-          completed: false,
-          userId: 1
-        })
-      })
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo crear la tarea.')
-      }
-
-      const nuevaTarea = await respuesta.json()
+      const nuevaTarea = await crearTareaAPI(tituloLimpio)
 
       setTareas((anteriores) => [
         { ...nuevaTarea, id: Date.now() },
@@ -81,10 +60,10 @@ export function useTareas() {
 
       return true
     } catch (err) {
-      setError(err.message || 'Error al crear la tarea.')
+      setError(err.message || 'No se pudo crear la tarea.')
       return false
     } finally {
-      setOperacionEnCurso(false)
+      setGuardando(false)
     }
   }
 
@@ -96,24 +75,12 @@ export function useTareas() {
     const estadoActual = tarea.completed ?? tarea.completada ?? false
 
     try {
-      setOperacionEnCurso(true)
+      setGuardando(true)
       setError(null)
 
-      const respuesta = await fetch(`${API_URL}/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          completed: !estadoActual
-        })
+      await actualizarTareaAPI(id, {
+        completed: !estadoActual
       })
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo actualizar el estado.')
-      }
-
-      await respuesta.json()
 
       setTareas((anteriores) =>
         anteriores.map((item) =>
@@ -125,10 +92,10 @@ export function useTareas() {
 
       return true
     } catch (err) {
-      setError(err.message || 'Error al actualizar el estado.')
+      setError(err.message || 'No se pudo actualizar el estado.')
       return false
     } finally {
-      setOperacionEnCurso(false)
+      setGuardando(false)
     }
   }
 
@@ -141,24 +108,12 @@ export function useTareas() {
     }
 
     try {
-      setOperacionEnCurso(true)
+      setGuardando(true)
       setError(null)
 
-      const respuesta = await fetch(`${API_URL}/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: tituloLimpio
-        })
+      await actualizarTareaAPI(id, {
+        title: tituloLimpio
       })
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo editar la tarea.')
-      }
-
-      await respuesta.json()
 
       setTareas((anteriores) =>
         anteriores.map((item) =>
@@ -170,25 +125,19 @@ export function useTareas() {
 
       return true
     } catch (err) {
-      setError(err.message || 'Error al editar la tarea.')
+      setError(err.message || 'No se pudo editar la tarea.')
       return false
     } finally {
-      setOperacionEnCurso(false)
+      setGuardando(false)
     }
   }
 
   async function eliminarTarea(id) {
     try {
-      setOperacionEnCurso(true)
+      setGuardando(true)
       setError(null)
 
-      const respuesta = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
-      })
-
-      if (!respuesta.ok) {
-        throw new Error('No se pudo eliminar la tarea.')
-      }
+      await eliminarTareaAPI(id)
 
       setTareas((anteriores) =>
         anteriores.filter((item) => item.id !== id)
@@ -196,18 +145,19 @@ export function useTareas() {
 
       return true
     } catch (err) {
-      setError(err.message || 'Error al eliminar la tarea.')
+      setError(err.message || 'No se pudo eliminar la tarea.')
       return false
     } finally {
-      setOperacionEnCurso(false)
+      setGuardando(false)
     }
   }
 
   return {
     tareas,
     cargando,
+    guardando,
+    operacionEnCurso: guardando,
     error,
-    operacionEnCurso,
     agregarTarea,
     cambiarEstado,
     editarTarea,

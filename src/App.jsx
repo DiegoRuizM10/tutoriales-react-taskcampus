@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useTareas } from './hooks/useTareas'
 import Header from './components/Header'
@@ -13,6 +12,7 @@ function App() {
   const {
     tareas,
     cargando,
+    guardando,
     error,
     agregarTarea,
     cambiarEstado,
@@ -37,6 +37,8 @@ function App() {
   }
 
   function manejarEliminarTarea(id) {
+    if (guardando) return
+
     const tarea = tareasSeguras.find((item) => item.id === id)
 
     if (tarea) {
@@ -44,9 +46,12 @@ function App() {
     }
   }
 
-  function confirmarEliminarTarea() {
-    if (tareaPorEliminar) {
-      eliminarTarea(tareaPorEliminar.id)
+  async function confirmarEliminarTarea() {
+    if (!tareaPorEliminar || guardando) return
+
+    const eliminada = await eliminarTarea(tareaPorEliminar.id)
+
+    if (eliminada !== false) {
       setTareaPorEliminar(null)
     }
   }
@@ -101,6 +106,7 @@ function App() {
           placeholder="Buscar tarea..."
           value={busqueda}
           onChange={(evento) => setBusqueda(evento.target.value)}
+          disabled={cargando}
         />
 
         <div className="filtros">
@@ -108,6 +114,7 @@ function App() {
             type="button"
             className={filtro === 'todas' ? 'filtro-activo' : ''}
             onClick={() => setFiltro('todas')}
+            disabled={guardando}
           >
             Todas
           </button>
@@ -118,6 +125,7 @@ function App() {
               filtro === 'pendientes' ? 'filtro-activo' : ''
             }
             onClick={() => setFiltro('pendientes')}
+            disabled={guardando}
           >
             Pendientes
           </button>
@@ -128,6 +136,7 @@ function App() {
               filtro === 'completadas' ? 'filtro-activo' : ''
             }
             onClick={() => setFiltro('completadas')}
+            disabled={guardando}
           >
             Completadas
           </button>
@@ -135,26 +144,34 @@ function App() {
 
         {cargando && <p>Cargando tareas...</p>}
 
-        {error && (
-          <p className="mensaje-error">
-            Error al cargar las tareas: {String(error)}
+        {guardando && (
+          <p className="mensaje-carga" role="status">
+            Guardando cambios...
           </p>
         )}
 
-        {!cargando && !error && (
+        {error && (
+          <p className="mensaje-error" role="alert">
+            {String(error)}
+          </p>
+        )}
+
+        {!cargando && (
           <TaskList
             tareas={tareasFiltradas}
             onCambiarEstado={cambiarEstado}
             onEditar={manejarEditarTarea}
             onEliminar={manejarEliminarTarea}
+            guardando={guardando}
           />
         )}
 
-        {!cargando &&
-          !error &&
-          tareasFiltradas.length > 0 && (
-            <p>Tareas visibles: {tareasFiltradas.length}</p>
-          )}
+        {!cargando && (
+          <p>
+            Tareas visibles: {tareasFiltradas.length} de{' '}
+            {tareasSeguras.length}
+          </p>
+        )}
       </Card>
 
       {tareaPorEliminar && (
@@ -162,7 +179,9 @@ function App() {
           titulo="Confirmar eliminación"
           mensaje={`¿Estás seguro de que quieres eliminar "${tareaPorEliminar.title ?? tareaPorEliminar.titulo}"? Esta acción no se puede deshacer.`}
           onConfirmar={confirmarEliminarTarea}
-          onCancelar={() => setTareaPorEliminar(null)}
+          onCancelar={() => {
+            if (!guardando) setTareaPorEliminar(null)
+          }}
         />
       )}
     </main>
