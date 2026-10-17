@@ -1,6 +1,9 @@
 
 import { useState } from 'react'
 import { useTareas } from './hooks/useTareas'
+import Header from './components/Header'
+import TaskSummary from './components/TaskSummary'
+import TaskList from './components/TaskList'
 import './App.css'
 
 function App() {
@@ -40,8 +43,13 @@ function App() {
     return coincideBusqueda && coincideFiltro
   })
 
-  const pendientes = tareas.filter((tarea) => !tarea.completada).length
-  const completadas = tareas.filter((tarea) => tarea.completada).length
+  const pendientes = tareas.filter(
+    (tarea) => !tarea.completada
+  ).length
+
+  const completadas = tareas.filter(
+    (tarea) => tarea.completada
+  ).length
 
   function manejarEditar(tarea) {
     const titulo = prompt('Escribe el nuevo título de la tarea:')
@@ -52,37 +60,24 @@ function App() {
   }
 
   function manejarEliminar(id) {
-    if (window.confirm('¿Seguro que quieres eliminar esta tarea?')) {
+    const confirmar = window.confirm(
+      '¿Seguro que quieres eliminar esta tarea?'
+    )
+
+    if (confirmar) {
       eliminarTarea(id)
     }
   }
 
   return (
     <main className="app">
-      <header className="encabezado">
-        <div>
-          <p className="etiqueta">ORGANIZACIÓN ACADÉMICA</p>
-          <h1>TaskCampus</h1>
-          <p className="subtitulo">
-            Organiza tus tareas. Avanza a tu ritmo.
-          </p>
-        </div>
-      </header>
+      <Header />
 
-      <section className="resumen">
-        <article className="tarjeta">
-          <span>Total de tareas</span>
-          <strong>{tareas.length}</strong>
-        </article>
-        <article className="tarjeta">
-          <span>Pendientes</span>
-          <strong>{pendientes}</strong>
-        </article>
-        <article className="tarjeta">
-          <span>Completadas</span>
-          <strong>{completadas}</strong>
-        </article>
-      </section>
+      <TaskSummary
+        total={tareas.length}
+        pendientes={pendientes}
+        completadas={completadas}
+      />
 
       <section className="panel">
         <h2>Nueva tarea</h2>
@@ -94,6 +89,7 @@ function App() {
             value={nuevoTitulo}
             onChange={(e) => setNuevoTitulo(e.target.value)}
           />
+
           <button type="submit">Agregar tarea</button>
         </form>
 
@@ -111,18 +107,22 @@ function App() {
           {['todas', 'pendientes', 'completadas'].map((opcion) => (
             <button
               key={opcion}
+              type="button"
               className={filtro === opcion ? 'activo' : ''}
               onClick={() => setFiltro(opcion)}
-              type="button"
             >
               {opcion.charAt(0).toUpperCase() + opcion.slice(1)}
             </button>
           ))}
         </div>
 
-        {cargando && <p className="vacio">Cargando tareas...</p>}
+        {cargando && (
+          <p className="vacio">Cargando tareas...</p>
+        )}
 
-        {error && <p className="vacio">Error: {error}</p>}
+        {error && (
+          <p className="vacio">Error: {error}</p>
+        )}
 
         {!cargando && !error && (
           <>
@@ -130,45 +130,12 @@ function App() {
               Mostrando {tareasVisibles.length} de {tareas.length} tareas
             </p>
 
-            <ul className="lista-tareas">
-              {tareasVisibles.map((tarea) => (
-                <li className="tarea" key={tarea.id}>
-                  <label
-                    className={
-                      tarea.completada ? 'texto-completado' : ''
-                    }
-                  >
-                    <input
-                      type="checkbox"
-                      checked={tarea.completada}
-                      onChange={() => cambiarEstado(tarea.id)}
-                    />
-                    {tarea.titulo}
-                  </label>
-
-                  <div className="acciones">
-                    <button
-                      type="button"
-                      className="boton-editar"
-                      onClick={() => manejarEditar(tarea)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="boton-eliminar"
-                      onClick={() => manejarEliminar(tarea.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            {tareasVisibles.length === 0 && (
-              <p className="vacio">No se encontraron tareas.</p>
-            )}
+            <TaskList
+              tareas={tareasVisibles}
+              onCambiarEstado={cambiarEstado}
+              onEditar={manejarEditar}
+              onEliminar={manejarEliminar}
+            />
           </>
         )}
       </section>
